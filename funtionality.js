@@ -107,88 +107,20 @@ function exportData(){
     link.click();
 };
 
+
 //formula bar
 const formulaBar = document.getElementById("formula-cell");
 formulaBar.addEventListener("change", saveText);
 
-function containsNumbers(str) {
-    return /[0-9]/.test(str);
-}
-
 function saveText(event){
-    const text = event.target.value;
+    let content = event.target.value;
 
-    if(containsNumbers(text)){
-        let ans = evaluate(text);
-        document.getElementById(activeCellId).innerText = ans;
+    document.getElementById(activeCellId).innerHTML += content;
 
-        if(state[activeCellId]){
-            state[activeCellId].text = ans+"";
-            
-        }else{
-            document.getElementById(activeCellId).innerText = ans;
-            state[activeCellId] = { ...defaultStyle, text: state[activeCellId].text.value+ans+""};
-
-        }
+    if(state[activeCellId]){
+        state[activeCellId].text.value = state[activeCellId].text.value + content;
     }else{
-        let ans = text;
-        document.getElementById(activeCellId).innerText += ans;
-        if(state[activeCellId]){
-            state[activeCellId].text = ans+"";
-            
-        }else{
-            document.getElementById(activeCellId).innerText += ans;
-            state[activeCellId] = { ...defaultStyle, text: state[activeCellId].text.value+ans+""};
-
-        }
+        state[activeCellId] = { ...defaultStyle, text: content};
     }
 }
 
-function evaluate(expression){
-    let opd = [];
-    let opr = [];
-
-    let ans = "";
-
-    for(let i = 0; i < expression.length; i++){
-        let ch = expression.charAt(i);
-
-        if(ch >= '0' && ch <= '9'){
-            opd.push(ch);
-            if(opd.length > 1 && (opr[opr.length - 1] === '/' || opr[opr.length-1] === '*')){
-                let v2 = opd.pop() - '0';
-                let v1 = opd.pop() - '0';
-
-                let o = opr.pop();
-                let cal = eval(o, v1, v2);
-                opd.push(cal.toString());
-            }
-        }
-        else if(ch === '('){
-            opd.push(ch);
-        }
-        else if(ch === ')'){
-            while(opd.length > 0 && opd[opd.length - 1] != '('){
-                let o = opr.pop();
-                let v2 = opd.pop()-'0';
-                let v1 = opd.pop()-'0';
-
-                let cal = eval(o, v1, v2);
-                opd.push(cal.toString());
-            }
-            opd.pop();
-        }else{
-            opr.push(ch);
-        }
-    }
-    return opd.pop();
-}
-
-function eval(o, v1, v2){
-    if(o === '+') return v1+v2;
-    if(o === '-') return v1-v2;
-    if(o === '*') return v1*v2;
-    if(o === '/') return v1/v2;
-
-    return -1;
-}
