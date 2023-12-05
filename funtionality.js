@@ -115,12 +115,98 @@ formulaBar.addEventListener("change", saveText);
 function saveText(event){
     let content = event.target.value;
 
-    document.getElementById(activeCellId).innerHTML += content;
-
-    if(state[activeCellId]){
-        state[activeCellId].text.value = state[activeCellId].text.value + content;
-    }else{
-        state[activeCellId] = { ...defaultStyle, text: content};
+    if(containsNumber(content)){
+        let res = calculate(content).toString();
+        document.getElementById(activeCellId).innerHTML += res;
+        if(state[activeCellId]){
+            state[activeCellId].text.value = state[activeCellId].text.value + content;
+        }else{
+            state[activeCellId] = { ...defaultStyle, text: content};
+        }
     }
+    else{
+        document.getElementById(activeCellId).innerHTML += content;
+
+        if(state[activeCellId]){
+            state[activeCellId].text.value = state[activeCellId].text.value + content;
+        }else{
+            state[activeCellId] = { ...defaultStyle, text: content};
+    }
+    }
+    
 }
+
+function containsNumber(str) {
+    // Use a regular expression to check for the presence of a number
+    const regex = /\d/;
+    return regex.test(str);
+}
+
+let calculate = function(s) {
+    let stack = [];
+
+    // Default values
+    let num = 0;
+    let result = 0;
+    let sign = 1;
+
+    for (let i = 0; i < s.length; i++) {
+        let ch = s.charAt(i);
+
+        if (/\d/.test(ch)) {
+            num = num * 10 + parseInt(ch);
+        } else if (ch === '+') {
+            result += sign * num;
+            num = 0;
+            sign = 1;
+        } else if (ch === '-') {
+            result += sign * num;
+            num = 0;
+            sign = -1;
+        } else if (ch === '*') {
+            // Handle multiplication
+            let nextNum = 0;
+            i++; // Move to the next character after '*'
+            while (i < s.length && /\d/.test(s.charAt(i))) {
+                nextNum = nextNum * 10 + parseInt(s.charAt(i));
+                i++;
+            }
+            i--; // Adjust the index since it will be incremented in the loop
+
+            num *= nextNum;
+        } else if (ch === '/') {
+            // Handle division
+            let nextNum = 0;
+            i++; // Move to the next character after '/'
+            while (i < s.length && /\d/.test(s.charAt(i))) {
+                nextNum = nextNum * 10 + parseInt(s.charAt(i));
+                i++;
+            }
+            i--; // Adjust the index since it will be incremented in the loop
+
+            num = Math.floor(num / nextNum);
+        } else if (ch === '(') {
+            // Push the result and sign to the stack
+            // Reset the values
+            stack.push(result);
+            stack.push(sign);
+            sign = 1;
+            result = 0;
+        } else if (ch === ')') {
+            // Calculate the current parenthesis
+            result += sign * num;
+            num = 0;
+
+            // Perform operation on the previous calculated parenthesis and the new one
+            result *= stack.pop();
+            result += stack.pop();
+        }
+    }
+
+    if (num !== 0) result += sign * num;
+
+    return result;
+};
+
+
 
